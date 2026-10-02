@@ -1,5 +1,8 @@
+import 'dart:convert';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:feiniu_music/app/services/media_notification_car_lyrics.dart';
+import 'package:feiniu_music/app/state/song_state.dart';
 
 void main() {
   group('carLyricsTitleOverride', () {
@@ -60,5 +63,23 @@ void main() {
       );
       expect(override, '人生短短几个秋');
     });
+  });
+
+  test('carLyricInfoJson 包含当前歌曲的完整时间轴', () {
+    const song = SongEntity(
+      id: 'song-1',
+      title: '测试歌曲',
+      artist: '测试歌手',
+      album: '测试专辑',
+    );
+    const lrc = '[00:01.00]第一句\n[00:03.50]第二句';
+    final info =
+        jsonDecode(carLyricInfoJson(song, lrc)!) as Map<String, dynamic>;
+    expect(info['songName'], '测试歌曲');
+    expect(info['artist'], '测试歌手');
+    expect(info['songId'], 'song-1');
+    expect(info['album'], '测试专辑');
+    expect(info['lyric'], lrc);
+    expect(carLyricInfoJson(song, '没有时间轴'), isNull);
   });
 }

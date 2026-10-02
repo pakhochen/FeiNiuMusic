@@ -1,3 +1,7 @@
+import 'dart:convert';
+
+import '../state/song_state.dart';
+
 /// 车载蓝牙歌词：开启且为当前歌曲时，返回要写入 `MediaItem.title` 的歌词行。
 /// 返回 `null` 表示不覆盖（车机显示真实歌名）。
 ///
@@ -13,4 +17,18 @@ String? carLyricsTitleOverride({
   if (!carLyricsEnabled || !isCurrentSong) return null;
   final line = currentCarLyricLine?.trim() ?? '';
   return line.isEmpty ? null : line;
+}
+
+String? carLyricInfoJson(SongEntity song, String? rawLrc) {
+  if (rawLrc == null ||
+      !RegExp(r'\[\d{1,2}:\d{2}(?:[.:]\d{1,3})?\]').hasMatch(rawLrc)) {
+    return null;
+  }
+  return jsonEncode({
+    'songName': song.title,
+    'artist': song.artistDisplayName,
+    'lyric': rawLrc,
+    'songId': song.id,
+    'album': song.albumDisplayName,
+  });
 }

@@ -191,6 +191,7 @@ class _FeiNiuAudioHandler extends BaseAudioHandler
   _FeiNiuAudioHandler(this.player) {
     player.snapshot.addListener(_syncFromPlayer);
     LyricsService.instance.currentLineText.addListener(_onLyricLineChanged);
+    LyricsService.instance.snapshot.addListener(_onLyricsLoaded);
     MediaNotificationSettings.showLyrics.addListener(
       _onNotificationSettingsChanged,
     );
@@ -375,8 +376,19 @@ class _FeiNiuAudioHandler extends BaseAudioHandler
     final carLyricLine = carLyricsEnabled && isCurrentSong
         ? LyricsService.instance.currentLineText.value
         : null;
+    final lyricsSnapshot = LyricsService.instance.snapshot.value;
+    final rawLrc = isCurrentSong && lyricsSnapshot.song?.id == song.id
+        ? lyricsSnapshot.rawLrc
+        : null;
+    final lyricInfo = carLyricsEnabled && isCurrentSong
+        ? carLyricInfoJson(song, rawLrc)
+        : null;
     final carLyricsExtras = carLyricsEnabled
-        ? <String, dynamic>{'android.media.metadata.LYRICS': carLyricLine ?? ''}
+        ? <String, dynamic>{
+            'android.media.metadata.LYRICS': rawLrc ?? carLyricLine ?? '',
+            'lyricInfo': ?lyricInfo,
+            'current_lyric': carLyricLine ?? '',
+          }
         : null;
     // 车机只认 AVRCP 标准属性（TITLE/ARTIST/...），extras 里的 LYRICS 到不了车机。
     // 用 title 携带当前歌词行，车机在 TITLE 位置显示歌词；关闭时回退真实歌名。
@@ -1163,6 +1175,7 @@ class _FeiNiuAudioHandler extends BaseAudioHandler
             item.displaySubtitle ?? '',
             item.artUri?.toString() ?? '',
             item.extras?['android.media.metadata.LYRICS'] ?? '',
+            item.extras?['lyricInfo'] ?? '',
           ].join('|');
     if (itemKey == _lastMediaItemKey) return;
     _lastMediaItemKey = itemKey;
@@ -1194,6 +1207,10 @@ class _FeiNiuAudioHandler extends BaseAudioHandler
 
   void _onLyricLineChanged() {
     _currentLyricLine = LyricsService.instance.currentLineText.value;
+    _syncMediaItem();
+  }
+
+  void _onLyricsLoaded() {
     _syncMediaItem();
   }
 
