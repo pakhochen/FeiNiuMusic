@@ -23,12 +23,14 @@ class LyricsSnapshot {
   final LyricsLoadStatus status;
   final SongEntity? song;
   final fl.LyricModel? model;
+  final String? rawLrc;
   final Object? error;
 
   const LyricsSnapshot({
     required this.status,
     required this.song,
     required this.model,
+    required this.rawLrc,
     required this.error,
   });
 
@@ -37,6 +39,7 @@ class LyricsSnapshot {
       status: LyricsLoadStatus.idle,
       song: null,
       model: null,
+      rawLrc: null,
       error: null,
     );
   }
@@ -46,11 +49,13 @@ class LyricsSnapshot {
     SongEntity? song,
     Object? error,
     fl.LyricModel? model,
+    String? rawLrc,
   }) {
     return LyricsSnapshot(
       status: status ?? this.status,
       song: song ?? this.song,
       model: model ?? this.model,
+      rawLrc: rawLrc,
       error: error,
     );
   }
@@ -202,6 +207,7 @@ class LyricsService {
       status: LyricsLoadStatus.loading,
       song: song,
       model: null,
+      rawLrc: null,
       error: null,
     );
     controller.lyricNotifier.value = null;
@@ -277,6 +283,7 @@ class LyricsService {
         status: LyricsLoadStatus.loaded,
         song: song,
         model: model,
+        rawLrc: lrc,
         error: null,
       );
       await _syncLyriconSong(song, model);
